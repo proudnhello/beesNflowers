@@ -14,6 +14,7 @@ const VALUE2 = 2;
 let myInstance;
 let canvasContainer;
 var centerHorz, centerVert;
+let points = [];
 
 class MyClass {
     constructor(param1, param2) {
@@ -54,26 +55,33 @@ function setup() {
 // draw() function is called repeatedly, it's the main animation loop
 function draw() {
   background(220);    
-  // call a method on the instance
-  myInstance.myMethod();
-
-  // Set up rotation for the rectangle
-  push(); // Save the current drawing context
-  translate(centerHorz, centerVert); // Move the origin to the rectangle's center
-  rotate(frameCount / 100.0); // Rotate by frameCount to animate the rotation
-  fill(234, 31, 81);
-  noStroke();
-  rect(-125, -125, 250, 250); // Draw the rectangle centered on the new origin
-  pop(); // Restore the original drawing context
-
-  // The text is not affected by the translate and rotate
-  fill(255);
-  textStyle(BOLD);
-  textSize(140);
-  text("p5*", centerHorz - 105, centerVert + 40);
+  points.forEach(point => {
+    const newFlower = new Flower(point.mouseX, point.mouseY, color(238, 248, 86), color(244, 86, 248));
+    newFlower.sprite();
+  })
 }
 
-// mousePressed() function is called once after every time a mouse button is pressed
-function mousePressed() {
-    // code to run when mouse is pressed
+function mouseClicked() {
+  points.push({mouseX, mouseY});
+}
+
+class Flower{
+  constructor(x, y, stigma, petal){
+    this.x = x;
+    this.y = y; 
+    this.stigma = stigma;
+    this.petal = petal;
+  }
+  //Flower shape from https://editor.p5js.org/katiejliu/sketches/Je9G3c5z9
+  sprite(){
+    noStroke();
+    fill(this.petal);
+    ellipse(this.x,this.y,20,20)
+    ellipse(this.x-15,this.y+5,20,20)
+    ellipse(this.x-25,this.y-5,20,20)
+    ellipse(this.x-17,this.y-20,20,20)
+    ellipse(this.x,this.y-15,20,20)
+    fill(this.stigma);
+    ellipse(this.x-12,this.y-7,22,22) 
+  }
 }
