@@ -8,6 +8,7 @@ var centerHorz, centerVert;
 let flowers = [];
 let bees = [];
 let hives = [];
+let war = true;
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
@@ -16,6 +17,8 @@ class Flower {
     this.position = {x, y};
     this.stigmaColor = stigmaColor;
     this.petalColor = petalColor;
+    this.visited = false;
+    this.destroyed = false;
   }
 
   //Flower shape from https://editor.p5js.org/katiejliu/sketches/Je9G3c5z9
@@ -29,6 +32,10 @@ class Flower {
     ellipse(this.position.x,this.position.y-15,20,20);
     fill(this.stigmaColor);
     ellipse(this.position.x-12,this.position.y-7,22,22) ;
+  }
+
+  destroy(){
+    flowers.splice(flowers.indexOf(this), 1);
   }
 }
 
@@ -86,10 +93,19 @@ class Bee extends Hive {
 
   //If bee has a target flower, move towards it. If it doesn't, search for nearby flowers
   move() {
-    if(this.target) {
+    if(this.target && !this.target.destroyed) {
       this.position.x = lerp(this.position.x, this.target.position.x, 0.01);
       this.position.y = lerp(this.position.y, this.target.position.y, 0.01);
       if(this.targetReached()) {
+        if(war) {
+          if(this.target.petalColor != this.color && this.target.visited == true) {
+            this.target.destroyed = true;              
+            this.target.destroy();
+          }else{
+            this.target.visited = true;
+            this.target.petalColor = this.color;
+          }
+        }
         this.target.petalColor = this.color;
         this.target = null;
       }
