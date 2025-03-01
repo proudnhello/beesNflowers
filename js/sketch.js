@@ -9,6 +9,8 @@ let flowers = [];
 let bees = [];
 let hives = [];
 let war = true;
+let newFlowerSpawnRadius = 75;
+let newFlowerExclusionRadius = 25;
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
@@ -19,6 +21,22 @@ class Flower {
     this.petalColor = petalColor;
     this.visited = false;
     this.destroyed = false;
+  }
+
+  duplicate() {
+    let dist = 0;
+    let newFlowerX = 0;
+    let newFlowerY = 0;
+    // Range of xy values should be bewteen -newFlowerSpawnRadius and +newFlowerSpawnRadius of current xy position, and not within newFlowerExclusionRadius of current flower
+    // Pick xy values until they are within the range and not within the exclusion radius
+    while(dist < newFlowerExclusionRadius && !(newFlowerX < 0 || newFlowerX > width || newFlowerY < 0 || newFlowerY > height)) {
+      newFlowerX = this.position.x + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
+      newFlowerY = this.position.y + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
+      dist = Math.sqrt(Math.pow(this.position.x - newFlowerX, 2) + Math.pow(this.position.y - newFlowerY, 2));
+    }
+    let f = new Flower(newFlowerX, newFlowerY, this.stigmaColor, this.petalColor);
+    f.visited = this.visited;
+    flowers.push(f);
   }
 
   //Flower shape from https://editor.p5js.org/katiejliu/sketches/Je9G3c5z9
@@ -60,6 +78,7 @@ class Bee extends Hive {
     this.target = null;
     this.searchRadius = 300;
     this.position = {x: this.beeSpawn.x, y: this.beeSpawn.y}; //Set start position to middle of hive
+    this.oldTargetPosition = this.position;
   }
 
   display() {
@@ -77,7 +96,7 @@ class Bee extends Hive {
     var minFlower = null;
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
-      if(flowerDist <= this.searchRadius && flower.petalColor != this.color && flowerDist <= minDist) {
+      if(flower.petalColor != this.color && flowerDist <= minDist) {
         minDist = flowerDist;
         minFlower = flower;
       }
@@ -85,10 +104,27 @@ class Bee extends Hive {
     return minFlower;
   }
 
+  getRandomInRange() {
+    // Find all flowers within search radius, then select one at random
+    let possibleTargets = [];
+    for(let flower of flowers) {
+      var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
+      if(flowerDist <= this.searchRadius && flower.target !== flower && dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > 5) {
+        possibleTargets.push(flower);
+      }
+    }
+    console.log(possibleTargets);
+    // If no flowers are in range, return the closest flower that is not the same color
+    if(possibleTargets.length == 0) {
+      possibleTargets.push(this.getClosest());
+    }
+    return possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+  }
+
   //TODO: Assign weights based on color of flower
   //TODO: Move bee in random direction if no flower is in radius
   search() {
-    this.setTarget(this.getClosest());  
+    this.setTarget(this.getRandomInRange());  
   }
 
   //If bee has a target flower, move towards it. If it doesn't, search for nearby flowers
@@ -102,12 +138,16 @@ class Bee extends Hive {
             this.target.destroyed = true;              
             this.target.destroy();
           }else{
+            if(this.target.petalColor != "grey"){
+              console.log(this.target.petalColor);
+              this.target.duplicate();
+            }
             this.target.visited = true;
             this.target.petalColor = this.color;
           }
         }
         this.target.petalColor = this.color;
-        this.target = null;
+        this.search();
       }
     } else {
       this.search();
