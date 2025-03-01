@@ -11,6 +11,7 @@ let hives = [];
 let war = true;
 let newFlowerSpawnRadius = 75;
 let newFlowerExclusionRadius = 25;
+let BEE_SPEED = 0.01;
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
@@ -21,6 +22,7 @@ class Flower {
     this.petalColor = petalColor;
     this.visited = false;
     this.destroyed = false;
+    this.targeted = false;
   }
 
   duplicate() {
@@ -78,7 +80,8 @@ class Bee extends Hive {
     this.target = null;
     this.searchRadius = 300;
     this.position = {x: this.beeSpawn.x, y: this.beeSpawn.y}; //Set start position to middle of hive
-    this.oldTargetPosition = this.position;
+    this.oldTargetPosition = {x: this.beeSpawn.x, y: this.beeSpawn.y}
+    this.amountThere = 0;
   }
 
   display() {
@@ -96,7 +99,7 @@ class Bee extends Hive {
     var minFlower = null;
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
-      if(flower.petalColor != this.color && flowerDist <= minDist) {
+      if(flower.petalColor != this.color && flowerDist <= minDist && flower.targeted === false) {
         minDist = flowerDist;
         minFlower = flower;
       }
@@ -109,11 +112,15 @@ class Bee extends Hive {
     let possibleTargets = [];
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
-      if(flowerDist <= this.searchRadius && flower.target !== flower && dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > 5) {
+      // If flower is within search radius and not the same color as the bee, add it to the list of possible targets
+      if(
+          flowerDist <= this.searchRadius && flower.target !== flower && 
+          flower.targeted === false && 
+          dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > 5
+      ) {
         possibleTargets.push(flower);
       }
     }
-    console.log(possibleTargets);
     // If no flowers are in range, return the closest flower that is not the same color
     if(possibleTargets.length == 0) {
       possibleTargets.push(this.getClosest());
@@ -124,22 +131,31 @@ class Bee extends Hive {
   //TODO: Assign weights based on color of flower
   //TODO: Move bee in random direction if no flower is in radius
   search() {
-    this.setTarget(this.getRandomInRange());  
+    var target = this.getRandomInRange();
+    if(target == null) {
+      this.target = null;
+      return
+    }
+    target.targeted = true;
+    this.oldTargetPosition = {x: this.position.x, y: this.position.y};
+    this.setTarget(target);  
   }
 
   //If bee has a target flower, move towards it. If it doesn't, search for nearby flowers
   move() {
     if(this.target && !this.target.destroyed) {
-      this.position.x = lerp(this.position.x, this.target.position.x, 0.01);
-      this.position.y = lerp(this.position.y, this.target.position.y, 0.01);
+      this.amountThere += BEE_SPEED;
+      this.position.x = lerp(this.oldTargetPosition.x, this.target.position.x, this.amountThere);
+      this.position.y = lerp(this.oldTargetPosition.y, this.target.position.y, this.amountThere);
       if(this.targetReached()) {
+        this.target.targeted = false;
+        this.amountThere = 0;
         if(war) {
           if(this.target.petalColor != this.color && this.target.visited == true) {
             this.target.destroyed = true;              
             this.target.destroy();
           }else{
             if(this.target.petalColor != "grey"){
-              console.log(this.target.petalColor);
               this.target.duplicate();
             }
             this.target.visited = true;
@@ -156,10 +172,7 @@ class Bee extends Hive {
 
   //Helper function to check if target flower has been reached
   targetReached() {
-    if(dist(this.position.x, this.position.y, this.target.position.x, this.target.position.y) <= 5) {
-      return true;
-    }
-    return false;
+    return this.amountThere >= 1;
   }
 
   setTarget(target) {
