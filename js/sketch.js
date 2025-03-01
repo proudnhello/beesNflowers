@@ -10,6 +10,7 @@ let bees = [];
 let hives = [];
 
 //This class stores infomation about each flower displayed on the screen
+//TODO: Don't spawn flowers directly on top of eachother or hives
 class Flower {
   constructor(x, y, stigmaColor, petalColor){
     this.x = x;
@@ -37,11 +38,12 @@ class Hive {
   constructor(hiveColor, position) {
     this.color = hiveColor;
     this.position = {x: position.x, y: position.y};
-    this.image = loadImage(`./images/${hiveColor}.png`);
+    this.image = loadImage(`./images/${hiveColor}Hive.png`);
+    this.beeSpawn = {x: position.x + 45, y: position.y + 55}; //Calculate center of the image
   }
 
   display() {
-    image(this.image, this.position.x , this.position.y, this.image.width/4, this.image.height/4);
+    image(this.image, this.position.x, this.position.y);
   }
 }
 
@@ -51,6 +53,7 @@ class Bee extends Hive {
     super(color, position); //Call parent hive class
     this.target = null;
     this.searchRadius = 100;
+    this.position = this.beeSpawn;
   }
 
   display() {
@@ -71,6 +74,10 @@ class Bee extends Hive {
   }
 
   move() {
+
+  }
+
+  setTarget() {
 
   }
 }
@@ -105,15 +112,19 @@ function setup() {
   for(let hive of hives) {
     bees.push(new Bee(hive.color, hive.position));
   }
+
+  //Spawn 10 flowers at random locations to start
+  for(let i = 0; i < 10; i++) {
+    flowers.push(new Flower(random() * width, random() * height, "yellow", "grey"));
+  }
 }
 
 function draw() {
-  background("green");
+  background("#105708"); //Green background
 
-  flowers.forEach(flower => {
-    const newFlower = new Flower(flower.mouseX, flower.mouseY, "yellow", "grey");
-    newFlower.sprite();
-  });
+  for(let flower of flowers) {
+    flower.sprite();
+  }
 
   for(let hive of hives) {
     hive.display();
@@ -125,5 +136,5 @@ function draw() {
 }
 
 function mouseClicked() {
-  flowers.push({mouseX, mouseY});
+  flowers.push(new Flower(mouseX, mouseY, "yellow", "grey"));
 }
