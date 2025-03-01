@@ -64,22 +64,24 @@ class Bee extends Hive {
     pop();
   }
 
-  //Returns nearby flowers that bee can travel to (within radius and not the same color)
-  getNeighbors() {
-    var neighbors = [];
+  //Returns closest flower that is not the same color
+  getClosest() {
+    var minDist = width; //Assign large value
+    var minFlower = null;
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
-      if(flowerDist <= this.searchRadius && flower.petalColor != this.color) {
-        neighbors.push(flower);
+      if(flowerDist <= this.searchRadius && flower.petalColor != this.color && flowerDist <= minDist) {
+        minDist = flowerDist;
+        minFlower = flower;
       }
     }
-    return neighbors;
+    return minFlower;
   }
 
+  //TODO: Assign weights based on color of flower
+  //TODO: Move bee in random direction if no flower is in radius
   search() {
-    var validNeighbors = this.getNeighbors();
-    //TODO: Assign weights based on color of flower
-    this.setTarget(validNeighbors[0]); //FIX: Assign target to flower
+    this.setTarget(this.getClosest());  
   }
 
   //If bee has a target flower, move towards it. If it doesn't, search for nearby flowers
