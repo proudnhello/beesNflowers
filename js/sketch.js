@@ -8,10 +8,10 @@ var centerHorz, centerVert;
 let flowers = [];
 let bees = [];
 let hives = [];
-let war = true;
+let war = false;
 let newFlowerSpawnRadius = 75;
 let newFlowerExclusionRadius = 25;
-let BEE_SPEED = 0.01;
+let BEE_SPEED = 0.005;
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
@@ -144,25 +144,41 @@ class Bee extends Hive {
   //If bee has a target flower, move towards it. If it doesn't, search for nearby flowers
   move() {
     if(this.target && !this.target.destroyed) {
+      // If we have a target, move towards it
       this.amountThere += BEE_SPEED;
       this.position.x = lerp(this.oldTargetPosition.x, this.target.position.x, this.amountThere);
       this.position.y = lerp(this.oldTargetPosition.y, this.target.position.y, this.amountThere);
       if(this.targetReached()) {
+        // If the target has been reached, set the target to null and search for a new one
         this.target.targeted = false;
         this.amountThere = 0;
+        // If we're at war
         if(war) {
+          // If it's a different color and has been visited, destroy it
           if(this.target.petalColor != this.color && this.target.visited == true) {
             this.target.destroyed = true;              
             this.target.destroy();
           }else{
-            if(this.target.petalColor != "grey"){
+            // Otherwise, mark it as visited and duplicate it if it has been visited
+            if(this.target.visited == true){
               this.target.duplicate();
             }
             this.target.visited = true;
             this.target.petalColor = this.color;
           }
+        // If we're at peace
+        }else{
+          // If it's unvisited, mark it as visited and set the color to the bee's color
+          if(this.target.visited == false){
+            this.target.visited = true;
+            this.target.petalColor = this.color;
+          }
+          // Otherwise, duplicate it, set the new flower's color to a mix of the bee's color and the flower's color
+          else{
+            this.target.duplicate();
+            this.target.petalColor = lerpColor(color(this.color), color(this.target.petalColor), 0.5);
+          }
         }
-        this.target.petalColor = this.color;
         this.search();
       }
     } else {
@@ -194,6 +210,8 @@ function setup() {
   let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
   canvas.parent("canvas-container");
   // resize canvas is the page is resized
+
+  colorMode(HSB, 1)
 
   $(window).resize(function() {
     resizeScreen();
