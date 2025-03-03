@@ -1,4 +1,4 @@
-// sketch.js - purpose and description here
+// sketch.js - Two modes: war and peace. Bees spawn from hives and either cooperate or fight through colors of flowers.
 // Author: Moore Macauley, Jackie Ho, Lo Weislak
 // Date:
 
@@ -123,21 +123,22 @@ class Bee extends Hive {
     return minFlower;
   }
 
+  // Find all flowers within search radius, then select one at random
   getRandomInRange() {
-    // Find all flowers within search radius, then select one at random
     let possibleTargets = [];
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
       // If flower is within search radius and not the same color as the bee, add it to the list of possible targets
       if(
-          flowerDist <= this.searchRadius && //Within range
-          flower.target !== flower &&
+          flowerDist <= this.searchRadius &&
+          flower.target !== flower && //Target is not current flower
           flower.targeted === false &&  //No other bee is targeting the flower
           dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > newFlowerSpawnRadius
       ) {
         possibleTargets.push(flower);
       }
     }
+
     // If no flowers are in range, return the closest flower that is not the same color
     if(possibleTargets.length == 0) {
       possibleTargets.push(this.getClosest());
@@ -146,7 +147,7 @@ class Bee extends Hive {
   }
 
   //TODO: Assign weights based on color of flower
-  //TODO: Move bee in random direction if no flower is in radius
+  //FIX: Bees sometimes get stuck on flower for one cycle
   search() {
     var target = this.getRandomInRange();
     if(target == null) {
@@ -169,37 +170,42 @@ class Bee extends Hive {
         // If the target has been reached, set the target to null and search for a new one
         this.target.targeted = false;
         this.distTraveled = 0;
-        // If we're at war
-        if(war) {
-          // If it's a different color and has been visited, destroy it
-          if(this.target.petalColor != this.color && this.target.visited == true) {
-            this.target.destroyed = true;              
-            this.target.destroy();
-          }else{
-            // Otherwise, mark it as visited and duplicate it if it has been visited
-            if(this.target.visited == true){
-              this.target.duplicate();
-            }
-            this.target.visited = true;
-            this.target.petalColor = this.color;
-          }
-        // If we're at peace
-        }else{
-          // If it's unvisited, mark it as visited and set the color to the bee's color
-          if(this.target.visited == false){
-            this.target.visited = true;
-            this.target.petalColor = this.color;
-          }
-          // Otherwise, duplicate it, set the new flower's color to a mix of the bee's color and the flower's color
-          else{
-            this.target.duplicate();
-            this.target.petalColor = lerpColor(color(this.color), color(this.target.petalColor), 0.5);
-          }
+        if (war) {
+          this.moveBeeAtWar();
+        } else {
+          this.moveBeeAtPeace();
         }
         this.search();
       }
     } else {
       this.search();
+    }
+  }
+
+  moveBeeAtWar() {
+    // If it's a different color and has been visited, destroy it
+    if (this.target.petalColor != this.color && this.target.visited == true) {
+      this.target.destroyed = true;              
+      this.target.destroy();
+    } else {
+      // Otherwise, mark it as visited and duplicate it if it has been visited
+      if(this.target.visited == true){
+        this.target.duplicate();
+      }
+      this.target.visited = true;
+      this.target.petalColor = this.color;
+    }
+  }
+
+  moveBeeAtPeace() {
+    // If it's unvisited, mark it as visited and set the color to the bee's color
+    if(this.target.visited == false){
+      this.target.visited = true;
+      this.target.petalColor = this.color;
+    } else {
+    // Otherwise, duplicate it, set the new flower's color to a mix of the bee's color and the flower's color
+      this.target.duplicate();
+      this.target.petalColor = lerpColor(color(this.color), color(this.target.petalColor), 0.5);
     }
   }
 
@@ -228,7 +234,7 @@ function setup() {
   canvas.parent("canvas-container");
   // resize canvas is the page is resized
 
-  colorMode(HSB, 1)
+  colorMode(HSB, 1);
 
   $(window).resize(function() {
     resizeScreen();
@@ -242,9 +248,9 @@ function setup() {
   
   //Add bees in hives
   for(let hive of hives) {
-    bees.push(new Bee(hive.color, hive.position));
-    bees.push(new Bee(hive.color, hive.position));
-    bees.push(new Bee(hive.color, hive.position));
+    for(var i = 0; i < 3; i++) {
+      bees.push(new Bee(hive.color, hive.position));
+    }
   }
 
   //Spawn 10 flowers at random locations to start
