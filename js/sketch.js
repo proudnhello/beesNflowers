@@ -97,7 +97,7 @@ class Bee extends Hive {
     this.searchRadius = 300;
     this.position = {x: this.beeSpawn.x, y: this.beeSpawn.y}; //Set start position to middle of hive
     this.oldTargetPosition = {x: this.beeSpawn.x, y: this.beeSpawn.y}
-    this.amountThere = 0;
+    this.distTraveled = 0;
   }
 
   display() {
@@ -115,7 +115,7 @@ class Bee extends Hive {
     var minFlower = null;
     for(let flower of flowers) {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
-      if(flower.petalColor != this.color && flowerDist <= minDist && flower.targeted === false) {
+      if(flower.target !== flower && flower.petalColor != this.color && flowerDist <= minDist && flower.targeted === false) {
         minDist = flowerDist;
         minFlower = flower;
       }
@@ -130,9 +130,10 @@ class Bee extends Hive {
       var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
       // If flower is within search radius and not the same color as the bee, add it to the list of possible targets
       if(
-          flowerDist <= this.searchRadius && flower.target !== flower && 
-          flower.targeted === false && 
-          dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > 5
+          flowerDist <= this.searchRadius && //Within range
+          flower.target !== flower &&
+          flower.targeted === false &&  //No other bee is targeting the flower
+          dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > newFlowerSpawnRadius
       ) {
         possibleTargets.push(flower);
       }
@@ -161,13 +162,13 @@ class Bee extends Hive {
   move() {
     if(this.target && !this.target.destroyed) {
       // If we have a target, move towards it
-      this.amountThere += BEE_SPEED;
-      this.position.x = lerp(this.oldTargetPosition.x, this.target.position.x, this.amountThere);
-      this.position.y = lerp(this.oldTargetPosition.y, this.target.position.y, this.amountThere);
+      this.distTraveled += BEE_SPEED;
+      this.position.x = lerp(this.oldTargetPosition.x, this.target.position.x, this.distTraveled);
+      this.position.y = lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
       if(this.targetReached()) {
         // If the target has been reached, set the target to null and search for a new one
         this.target.targeted = false;
-        this.amountThere = 0;
+        this.distTraveled = 0;
         // If we're at war
         if(war) {
           // If it's a different color and has been visited, destroy it
@@ -204,7 +205,7 @@ class Bee extends Hive {
 
   //Helper function to check if target flower has been reached
   targetReached() {
-    return this.amountThere >= 1;
+    return this.distTraveled >= 1;
   }
 
   setTarget(target) {
