@@ -8,10 +8,26 @@ var centerHorz, centerVert;
 let flowers = [];
 let bees = [];
 let hives = [];
-let war = false;
+let war = true;
 let newFlowerSpawnRadius = 75;
 let newFlowerExclusionRadius = 25;
 let BEE_SPEED = 0.005;
+
+document.getElementById("war").addEventListener("click", function() {
+  war = true;
+  flowers = [];
+  bees = [];
+  hives = [];
+  setup();
+});
+
+document.getElementById("peace").addEventListener("click", function() {
+  war = false;
+  flowers = [];
+  bees = [];
+  hives = [];
+  setup();
+});
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
@@ -226,10 +242,12 @@ function setup() {
   //Add bees in hives
   for(let hive of hives) {
     bees.push(new Bee(hive.color, hive.position));
+    bees.push(new Bee(hive.color, hive.position));
+    bees.push(new Bee(hive.color, hive.position));
   }
 
   //Spawn 10 flowers at random locations to start
-  for(let i = 0; i < 10; i++) {
+  for(let i = 0; i < 30; i++) {
     flowers.push(new Flower(random() * width, random() * height, "yellow", "grey"));
   }
 }
