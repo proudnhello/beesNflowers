@@ -47,11 +47,15 @@ class Flower {
     let newFlowerY = 0;
     // Range of xy values should be bewteen -newFlowerSpawnRadius and +newFlowerSpawnRadius of current xy position, and not within newFlowerExclusionRadius of current flower
     // Pick xy values until they are within the range and not within the exclusion radius
-    while(dist < newFlowerExclusionRadius && !(newFlowerX < 0 || newFlowerX > width || newFlowerY < 0 || newFlowerY > height)) {
+
+    //while(dist < newFlowerExclusionRadius && !(newFlowerX < 0 || newFlowerX > width || newFlowerY < 0 || newFlowerY > height)) {
+    while(dist < newFlowerExclusionRadius || !(onCanvas(newFlowerX, newFlowerY))) {
       newFlowerX = this.position.x + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
       newFlowerY = this.position.y + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
       dist = Math.sqrt(Math.pow(this.position.x - newFlowerX, 2) + Math.pow(this.position.y - newFlowerY, 2));
     }
+
+    console.log(`NEW ${this.petalColor} FLOWER AT: ${newFlowerX}, ${newFlowerY}`);
     let f = new Flower(newFlowerX, newFlowerY, this.stigmaColor, this.petalColor);
     f.visited = this.visited;
     flowers.push(f);
@@ -230,7 +234,6 @@ function resizeScreen() {
 function setup() {
   // place our canvas, making it fit our container
   canvasContainer = $("#canvas-container");
-  console.log(canvasContainer.width());
   let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
   canvas.parent("canvas-container");
   // resize canvas is the page is resized
@@ -249,7 +252,7 @@ function setup() {
   
   //Add bees in hives
   for(let hive of hives) {
-    for(var i = 0; i < 3; i++) {
+    for(var i = 0; i < 5; i++) {
       bees.push(new Bee(hive.color, hive.position));
     }
   }
@@ -289,4 +292,11 @@ function canvasClicked() {
 		return true;
 	}
 	return false;
+}
+
+function onCanvas(x, y) {
+  if ((x > 0 && x < width) && (y > 0 && y < height)) {
+    return true;
+  }
+  return false;
 }
