@@ -33,6 +33,8 @@ h1, h2 {
   #canvas-container {
     width: 600px;
     height: 600px;
+    display: block;
+    margin: 0 auto;
   }
 
   /* Set the canvas element to be the full size of the container */
