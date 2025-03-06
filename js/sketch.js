@@ -15,18 +15,10 @@ let BEE_SPEED = 0.005;
 
 document.getElementById("war").addEventListener("click", function() {
   war = true;
-  flowers = [];
-  bees = [];
-  hives = [];
-  setup();
 });
 
 document.getElementById("peace").addEventListener("click", function() {
   war = false;
-  flowers = [];
-  bees = [];
-  hives = [];
-  setup();
 });
 
 //This class stores infomation about each flower displayed on the screen
@@ -71,7 +63,7 @@ class Flower {
     ellipse(this.position.x-17,this.position.y-20,20,20);
     ellipse(this.position.x,this.position.y-15,20,20);
     fill(this.stigmaColor);
-    ellipse(this.position.x-12,this.position.y-7,22,22) ;
+    ellipse(this.position.x-12,this.position.y-7,10,10) ;
   }
 
   destroy(){
