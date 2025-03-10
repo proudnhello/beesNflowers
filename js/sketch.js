@@ -8,18 +8,33 @@ var centerHorz, centerVert;
 let flowers = [];
 let bees = [];
 let hives = [];
-let war = true;
+let war = false;
 let newFlowerSpawnRadius = 75;
 let newFlowerExclusionRadius = 25;
 let BEE_SPEED = 0.005;
+let nuclearButton = document.getElementById("nuclearButton");
+let buttonContainer = document.getElementById("buttonContainer"); 
+let EASsound = new Audio('./sound/alarm.mp3');
 
-document.getElementById("war").addEventListener("click", function() {
+document.getElementById("war").addEventListener("click", enableWar);
+
+document.getElementById("peace").addEventListener("click", enablePeace);
+
+nuclearButton.addEventListener("click", enableWar);
+
+function enableWar() {
   war = true;
-});
+  buttonContainer.style.display = "none";
+  EASsound.currentTime = 0;
+  EASsound.play();
+}
 
-document.getElementById("peace").addEventListener("click", function() {
+function enablePeace() {
   war = false;
-});
+  buttonContainer.style.display = "block";
+  buttonContainer.textAlign = "center";
+  EASsound.pause();
+}
 
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
