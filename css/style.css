@@ -37,6 +37,13 @@ h1, h2 {
     margin: 0 auto;
   }
 
+  #minigame-container{
+    width: 300px;
+    height: 300px;
+    display: block;
+    margin: 0 auto;
+  }
+
   /* Set the canvas element to be the full size of the container */
   canvas {
     width: 100%;

@@ -66,8 +66,45 @@ let conflictSketch = function(p){
   
 }
 
-// resize canvas is the page is resized
+let peaceSketch = function(p) {
+  let container;
+  p.setup = function() {
+    p.colorMode(p.HSB, 1);
+    // place our canvas, making it fit our container
+    canvasContainer = $("#minigame-container");
+    let conflictCanvas = p.createCanvas(canvasContainer.width(), canvasContainer.height());
+    conflictCanvas.parent("minigame-container");
+    container = $("#minigame-container");
+      
+    $(window).resize(function() {
+      resizeScreen(p);
+    });
+    resizeScreen(p);
+    this.testHive = new Hive("blue", {x: p.width/2 - 50, y: p.height/2 - 50}, p);
+    p.hide();
+  }
+
+  p.draw = function() {
+    p.background("green");
+    this.testHive.display();
+  }
+
+  p.mousePressed = function() {
+    if(canvasClicked(p)) {
+      enablePeace();
+    }
+  }
+
+  p.hide = function() {
+    container.hide();
+  }
+  p.show = function() {
+    container.show();
+  }
+}
+
 let p5Conflict = new p5(conflictSketch)
+let p5Peace = new p5(peaceSketch)
 
 document.getElementById("war").addEventListener("click", enableWar);
 
@@ -80,6 +117,7 @@ function enableWar() {
   buttonContainer.style.display = "none";
   EASsound.currentTime = 0;
   EASsound.play();
+  p5Peace.show();
 }
 
 function enablePeace() {
@@ -87,6 +125,7 @@ function enablePeace() {
   buttonContainer.style.display = "block";
   buttonContainer.textAlign = "center";
   EASsound.pause();
+  p5Peace.hide();
 }
 
 //This class stores infomation about each flower displayed on the screen
@@ -116,7 +155,6 @@ class Flower {
       dist = Math.sqrt(Math.pow(this.position.x - newFlowerX, 2) + Math.pow(this.position.y - newFlowerY, 2));
     }
 
-    console.log(`NEW ${this.petalColor} FLOWER AT: ${newFlowerX}, ${newFlowerY}`);
     let f = new Flower(newFlowerX, newFlowerY, this.stigmaColor, this.petalColor, this.p);
     f.visited = this.visited;
     flowers.push(f);
