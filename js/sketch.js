@@ -16,6 +16,59 @@ let nuclearButton = document.getElementById("nuclearButton");
 let buttonContainer = document.getElementById("buttonContainer"); 
 let EASsound = new Audio('./sound/alarm.mp3');
 
+let conflictSketch = function(p){
+  p.setup = function() {
+    p.colorMode(p.HSB, 1);
+    // place our canvas, making it fit our container
+    canvasContainer = $("#canvas-container");
+    let conflictCanvas = p.createCanvas(canvasContainer.width(), canvasContainer.height());
+    conflictCanvas.parent("canvas-container");
+      
+    $(window).resize(function() {
+      resizeScreen(p);
+    });
+    resizeScreen(p);
+  
+    //Add the three hives
+    hives.push(new Hive("red", {x: 70, y: 50}, p));
+    hives.push(new Hive("green", {x: p.width - 170, y: 50}, p));
+    hives.push(new Hive("blue", {x: p.width/2 - 50, y: p.height - 170}, p));
+    
+    //Add bees in hives
+    for(let hive of hives) {
+      for(var i = 0; i < 5; i++) {
+        bees.push(new Bee(hive.color, hive.position, p));
+      }
+    }
+  
+    //Spawn 10 flowers at random locations to start
+    for(let i = 0; i < 30; i++) {
+      flowers.push(new Flower(p.random() * p.width, p.random() * p.height, "yellow", "grey", p));
+    }
+  }
+  
+  p.draw = function() {
+    p.background("#105708"); //Green background
+  
+    for(let flower of flowers) {
+      flower.sprite();
+    }
+  
+    for(let hive of hives) {
+      hive.display();
+    }
+  
+    for(let bee of bees) {
+      bee.display();
+      bee.move();
+    }
+  }
+  
+}
+
+// resize canvas is the page is resized
+let p5Conflict = new p5(conflictSketch)
+
 document.getElementById("war").addEventListener("click", enableWar);
 
 document.getElementById("peace").addEventListener("click", enablePeace);
@@ -39,13 +92,14 @@ function enablePeace() {
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
 class Flower {
-  constructor(x, y, stigmaColor, petalColor) {
+  constructor(x, y, stigmaColor, petalColor, p) {
     this.position = {x, y};
     this.stigmaColor = stigmaColor;
     this.petalColor = petalColor;
     this.visited = false;
     this.destroyed = false;
     this.targeted = false;
+    this.p = p;
   }
 
   duplicate() {
@@ -56,29 +110,29 @@ class Flower {
     // Pick xy values until they are within the range and not within the exclusion radius
 
     //while(dist < newFlowerExclusionRadius && !(newFlowerX < 0 || newFlowerX > width || newFlowerY < 0 || newFlowerY > height)) {
-    while(dist < newFlowerExclusionRadius || !(onCanvas(newFlowerX, newFlowerY))) {
+    while(dist < newFlowerExclusionRadius || !(onCanvas(newFlowerX, newFlowerY, this.p))) {
       newFlowerX = this.position.x + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
       newFlowerY = this.position.y + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
       dist = Math.sqrt(Math.pow(this.position.x - newFlowerX, 2) + Math.pow(this.position.y - newFlowerY, 2));
     }
 
     console.log(`NEW ${this.petalColor} FLOWER AT: ${newFlowerX}, ${newFlowerY}`);
-    let f = new Flower(newFlowerX, newFlowerY, this.stigmaColor, this.petalColor);
+    let f = new Flower(newFlowerX, newFlowerY, this.stigmaColor, this.petalColor, this.p);
     f.visited = this.visited;
     flowers.push(f);
   }
 
   //Flower shape from https://editor.p5js.org/katiejliu/sketches/Je9G3c5z9
   sprite() {
-    noStroke();
-    fill(this.petalColor);
-    ellipse(this.position.x,this.position.y,20,20);
-    ellipse(this.position.x-15,this.position.y+5,20,20);
-    ellipse(this.position.x-25,this.position.y-5,20,20);
-    ellipse(this.position.x-17,this.position.y-20,20,20);
-    ellipse(this.position.x,this.position.y-15,20,20);
-    fill(this.stigmaColor);
-    ellipse(this.position.x-12,this.position.y-7,10,10) ;
+    this.p.noStroke();
+    this.p.fill(this.petalColor);
+    this.p.ellipse(this.position.x,this.position.y,20,20);
+    this.p.ellipse(this.position.x-15,this.position.y+5,20,20);
+    this.p.ellipse(this.position.x-25,this.position.y-5,20,20);
+    this.p.ellipse(this.position.x-17,this.position.y-20,20,20);
+    this.p.ellipse(this.position.x,this.position.y-15,20,20);
+    this.p.fill(this.stigmaColor);
+    this.p.ellipse(this.position.x-12,this.position.y-7,10,10) ;
   }
 
   destroy(){
@@ -88,36 +142,38 @@ class Flower {
 
 //This class stores information about each of the three hives
 class Hive {
-  constructor(hiveColor, position) {
+  constructor(hiveColor, position, p) {
     this.color = hiveColor;
     this.position = {x: position.x, y: position.y};
-    this.image = loadImage(`./images/${hiveColor}Hive.png`);
+    this.image = p.loadImage(`./images/${hiveColor}Hive.png`);
     this.beeSpawn = {x: position.x + 45, y: position.y + 55}; //Calculate center of the image
+    this.p = p;
   }
 
   display() {
-    image(this.image, this.position.x, this.position.y);
+    this.p.image(this.image, this.position.x, this.position.y);
   }
 }
 
 //This class stores information about each bee
 class Bee extends Hive {
-  constructor(color, position) {
-    super(color, position); //Call parent hive class
+  constructor(color, position, p) {
+    super(color, position, p); //Call parent hive class
     this.target = null;
     this.searchRadius = 300;
     this.position = {x: this.beeSpawn.x, y: this.beeSpawn.y}; //Set start position to middle of hive
     this.oldTargetPosition = {x: this.beeSpawn.x, y: this.beeSpawn.y}
     this.distTraveled = 0;
+    this.p = p;
   }
 
   display() {
-    push();
-    fill("black");
-    ellipse(this.position.x, this.position.y, 11, 11);
-    fill(this.color);
-    ellipse(this.position.x, this.position.y, 10, 10);
-    pop();
+    this.p.push();
+    this.p.fill("black");
+    this.p.ellipse(this.position.x, this.position.y, 11, 11);
+    this.p.fill(this.color);
+    this.p.ellipse(this.position.x, this.position.y, 10, 10);
+    this.p.pop();
   }
 
   //Returns closest flower that is not the same color
@@ -125,7 +181,7 @@ class Bee extends Hive {
     var minDist = width; //Assign large value
     var minFlower = null;
     for(let flower of flowers) {
-      var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
+      var flowerDist = this.p.dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
       if(flower.target !== flower && flower.petalColor != this.color && flowerDist <= minDist && flower.targeted === false) {
         minDist = flowerDist;
         minFlower = flower;
@@ -138,13 +194,13 @@ class Bee extends Hive {
   getRandomInRange() {
     let possibleTargets = [];
     for(let flower of flowers) {
-      var flowerDist = dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
+      var flowerDist = this.p.dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
       // If flower is within search radius and not the same color as the bee, add it to the list of possible targets
       if(
           flowerDist <= this.searchRadius &&
           flower.target !== flower && //Target is not current flower
           flower.targeted === false &&  //No other bee is targeting the flower
-          dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > newFlowerSpawnRadius
+          this.p.dist(flower.position.x, flower.position.y, this.oldTargetPosition.x, this.oldTargetPosition.y) > newFlowerSpawnRadius
       ) {
         possibleTargets.push(flower);
       }
@@ -175,8 +231,8 @@ class Bee extends Hive {
     if(this.target && !this.target.destroyed) {
       // If we have a target, move towards it
       this.distTraveled += BEE_SPEED;
-      this.position.x = lerp(this.oldTargetPosition.x, this.target.position.x, this.distTraveled);
-      this.position.y = lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
+      this.position.x = this.p.lerp(this.oldTargetPosition.x, this.target.position.x, this.distTraveled);
+      this.position.y = this.p.lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
       if(this.targetReached()) {
         // If the target has been reached, set the target to null and search for a new one
         this.target.targeted = false;
@@ -216,7 +272,7 @@ class Bee extends Hive {
     } else {
     // Otherwise, duplicate it, set the new flower's color to a mix of the bee's color and the flower's color
       this.target.duplicate();
-      this.target.petalColor = lerpColor(color(this.color), color(this.target.petalColor), 0.5);
+      this.target.petalColor = this.p.lerpColor(this.p.color(this.color), this.p.color(this.target.petalColor), 0.5);
     }
   }
 
@@ -230,79 +286,30 @@ class Bee extends Hive {
   }
 }
 
-function resizeScreen() {
+function resizeScreen(p) {
   centerHorz = canvasContainer.width() / 2; // Adjusted for drawing logic
   centerVert = canvasContainer.height() / 2; // Adjusted for drawing logic
   console.log("Resizing...");
-  resizeCanvas(canvasContainer.width(), canvasContainer.height());
+  p.resizeCanvas(canvasContainer.width(), canvasContainer.height());
   // redrawCanvas(); // Redraw everything based on new size
 }
 
-function setup() {
-  // place our canvas, making it fit our container
-  canvasContainer = $("#canvas-container");
-  let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
-  canvas.parent("canvas-container");
-  // resize canvas is the page is resized
-
-  colorMode(HSB, 1);
-
-  $(window).resize(function() {
-    resizeScreen();
-  });
-  resizeScreen();
-
-  //Add the three hives
-  hives.push(new Hive("red", {x: 70, y: 50}));
-  hives.push(new Hive("green", {x: width - 170, y: 50}));
-  hives.push(new Hive("blue", {x: width/2 - 50, y: height - 170}));
-  
-  //Add bees in hives
-  for(let hive of hives) {
-    for(var i = 0; i < 5; i++) {
-      bees.push(new Bee(hive.color, hive.position));
-    }
-  }
-
-  //Spawn 10 flowers at random locations to start
-  for(let i = 0; i < 30; i++) {
-    flowers.push(new Flower(random() * width, random() * height, "yellow", "grey"));
-  }
-}
-
-function draw() {
-  background("#105708"); //Green background
-
-  for(let flower of flowers) {
-    flower.sprite();
-  }
-
-  for(let hive of hives) {
-    hive.display();
-  }
-
-  for(let bee of bees) {
-    bee.display();
-    bee.move();
-  }
-}
-
 function mouseClicked() {
-  if(canvasClicked()) {
-    flowers.push(new Flower(mouseX, mouseY, "yellow", "grey"));
+  if(canvasClicked(p5Conflict)) {
+    flowers.push(new Flower(mouseX, mouseY, "yellow", "grey", p5Conflict));
   }
 }
 
 //Helper function to determine if mouse was clicked on the canvas
-function canvasClicked() {
-	if((mouseX > 0 && mouseX < width) && (mouseY > 0 && mouseY < height)) {
+function canvasClicked(p) {
+	if((p.mouseX > 0 && p.mouseX < p.width) && (p.mouseY > 0 && p.mouseY < p.height)) {
 		return true;
 	}
 	return false;
 }
 
-function onCanvas(x, y) {
-  if ((x > 0 && x < width) && (y > 0 && y < height)) {
+function onCanvas(x, y, p) {
+  if ((x > 0 && x < p.width) && (y > 0 && y < p.height)) {
     return true;
   }
   return false;
