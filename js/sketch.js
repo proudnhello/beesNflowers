@@ -14,7 +14,9 @@ let newFlowerExclusionRadius = 25;
 let BEE_SPEED = 0.005;
 let nuclearButton = document.getElementById("nuclearButton");
 let buttonContainer = document.getElementById("buttonContainer"); 
-let EASsound = new Audio('./sound/alarm.mp3');
+let siren = new Audio('./sound/siren.mp3');
+let buzz = new Audio('./sound/bee.mp3');
+let garden = new Audio('./sound/garden.mp3');
 
 let conflictSketch = function(p){
   p.setup = function() {
@@ -115,8 +117,10 @@ nuclearButton.addEventListener("click", enableWar);
 function enableWar() {
   war = true;
   buttonContainer.style.display = "none";
-  EASsound.currentTime = 0;
-  EASsound.play();
+  garden.pause();
+  siren.currentTime = 0;
+  siren.volume = 0.5;
+  siren.play();
   p5Peace.show();
 }
 
@@ -124,7 +128,10 @@ function enablePeace() {
   war = false;
   buttonContainer.style.display = "block";
   buttonContainer.textAlign = "center";
-  EASsound.pause();
+  siren.pause();
+  garden.currentTime = 0;
+  garden.volume = 0.5;
+  garden.play();
   p5Peace.hide();
 }
 
@@ -216,7 +223,7 @@ class Bee extends Hive {
 
   //Returns closest flower that is not the same color
   getClosest() {
-    var minDist = width; //Assign large value
+    var minDist = canvasContainer.width(); //Assign large value
     var minFlower = null;
     for(let flower of flowers) {
       var flowerDist = this.p.dist(flower.position.x, flower.position.y, this.position.x, this.position.y);
@@ -273,6 +280,7 @@ class Bee extends Hive {
       this.position.y = this.p.lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
       if(this.targetReached()) {
         // If the target has been reached, set the target to null and search for a new one
+        buzz.play();
         this.target.targeted = false;
         this.distTraveled = 0;
         if (war) {
