@@ -213,11 +213,12 @@ class Hive {
     this.color = hiveColor;
     this.position = {x: position.x, y: position.y};
     this.image = p.loadImage(`./images/${hiveColor}Hive.png`);
-    this.beeSpawn = {x: position.x + 45, y: position.y + 55}; //Calculate center of the image
+    this.beeSpawn = {x: position.x + 45, y: position.y + 80}; //Calculate center of the image
     this.p = p;
   }
 
   display() {
+    this.image.resize(90, 0);
     this.p.image(this.image, this.position.x, this.position.y);
   }
 }
