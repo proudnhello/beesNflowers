@@ -21,8 +21,9 @@ let garden = new Audio('./sound/garden.mp3');
 let explosion = new Audio('./sound/explosion.mp3');
 let gun = new Audio('./sound/gun.mp3');
 let plane = new Audio('./sound/plane.mp3');
+let cry = new Audio('./sound/cry.mp3');
 
-let warSounds = [explosion, gun, plane];
+let warSounds = [explosion, gun, plane, cry];
 let soundEffectCountdown = 0;
 
 let conflictSketch = function(p){
