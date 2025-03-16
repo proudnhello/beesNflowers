@@ -18,6 +18,13 @@ let siren = new Audio('./sound/siren.mp3');
 let buzz = new Audio('./sound/bee.mp3');
 let garden = new Audio('./sound/garden.mp3');
 
+let explosion = new Audio('./sound/explosion.mp3');
+let gun = new Audio('./sound/gun.mp3');
+let plane = new Audio('./sound/plane.mp3');
+
+let warSounds = [explosion, gun, plane];
+let soundEffectCountdown = 0;
+
 let conflictSketch = function(p){
   p.setup = function() {
     p.colorMode(p.HSB, 1);
@@ -64,8 +71,23 @@ let conflictSketch = function(p){
       bee.display();
       bee.move();
     }
+    soundEffectCountdown += BEE_SPEED;
   }
-  
+
+  p.mouseClicked = function() {
+    if(canvasClicked(p)) {
+      flowers.push(new Flower(p.mouseX, p.mouseY, "yellow", "grey", p));
+    }
+    if(war){
+      if(siren.paused) {
+        siren.play();
+      }
+    }else if(!war){
+      if(garden.paused) {
+        garden.play();
+      }
+    }
+  }
 }
 
 let peaceSketch = function(p) {
@@ -280,7 +302,14 @@ class Bee extends Hive {
       this.position.y = this.p.lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
       if(this.targetReached()) {
         // If the target has been reached, set the target to null and search for a new one
-        buzz.play();
+        if(soundEffectCountdown >= 1){
+          soundEffectCountdown = 0;
+          if(!war){
+            buzz.play();
+          }else{
+            warSounds[Math.floor(Math.random() * warSounds.length)].play();
+          }
+        }
         this.target.targeted = false;
         this.distTraveled = 0;
         if (war) {
@@ -338,12 +367,6 @@ function resizeScreen(p) {
   console.log("Resizing...");
   p.resizeCanvas(canvasContainer.width(), canvasContainer.height());
   // redrawCanvas(); // Redraw everything based on new size
-}
-
-function mouseClicked() {
-  if(canvasClicked(p5Conflict)) {
-    flowers.push(new Flower(mouseX, mouseY, "yellow", "grey", p5Conflict));
-  }
 }
 
 //Helper function to determine if mouse was clicked on the canvas
