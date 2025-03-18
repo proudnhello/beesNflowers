@@ -175,12 +175,18 @@ let peaceSketch = function(p) {
       enablePeace();
     }
 
+    if(checkLose()) {
+      p.minigameFail();
+    }
+  }
+
+  function checkLose() {
     for(let key in beesClicked) {
       if (beesClicked[key] < 0) {
-        p.minigameFail();
+        return true;
       }
     }
-
+    return false;
   }
 
   function checkWin() {
