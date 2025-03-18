@@ -60,7 +60,7 @@ let conflictSketch = function(p) {
   
     //Spawn 10 flowers at random locations to start
     for(let i = 0; i < 30; i++) {
-      flowers.push(new Flower(p.random() * p.width, p.random() * p.height, "yellow", "grey", p));
+      //flowers.push(new Flower(p.random() * p.width, p.random() * p.height, "yellow", "grey", p));
     }
   }
   
@@ -80,6 +80,10 @@ let conflictSketch = function(p) {
       bee.move();
     }
     soundEffectCountdown += BEE_SPEED;
+
+    if (flowers.length == 0) {
+      p.gameOver();
+    }
   }
 
   p.mouseClicked = function() {
@@ -96,11 +100,20 @@ let conflictSketch = function(p) {
       }
     }
   }
+
+  p.gameOver = function() {
+    p.clear();
+    p.background("maroon");
+    p.stroke("black");
+    p.textSize(32);
+    p.text("GAME OVER", p.width - 400, p.height/2 - 100);
+    p.text("Click anywhere to restart", p.width - 470, p.height/2 + 100);
+  }
 }
 
 //Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
-  let beesClicked = {Red: 10, Green: 10, Blue: 10}; //TEST: SET TO ONE
+  let beesClicked = {Red: 10, Green: 10, Blue: 10};
   let colors = ["Red", "Green", "Blue"];
   let minigameBees = [];
   let minigameStart;
@@ -199,7 +212,7 @@ let peaceSketch = function(p) {
   }
 
   p.minigameFail = function() {
-    p.text("TRY AGAIN", 200, 150);
+    p.text("TRY AGAIN IN 5 SECONDS", 70, 150);
     p.minigameReset();
     clearInterval(minigameStart);
     minigameStart = null;
@@ -254,10 +267,6 @@ function enablePeace() {
   garden.volume = 0.5;
   garden.play();
   p5Peace.hide();
-}
-
-function gameOver() {
-
 }
 
 //This class stores infomation about each flower displayed on the screen
