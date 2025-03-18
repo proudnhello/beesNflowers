@@ -146,6 +146,7 @@ let peaceSketch = function(p) {
 
   p.removeMinigameBee = function(bee) {
     minigameBees.splice(minigameBees.indexOf(bee), 1);
+    beesClicked[bee.color]++;
   }
 
   p.mousePressed = function() {
@@ -157,7 +158,11 @@ let peaceSketch = function(p) {
 
   //Check where on the canvas the mouse was pressed
   p.checkClick = function() {
-    
+    for(var bee of minigameBees) {
+      if(p.dist(p.mouseX, p.mouseY, bee.position.x, bee.position.y) < 15) {
+        p.removeMinigameBee(bee);
+      }
+    }
   }
 
   //Update bee counter
