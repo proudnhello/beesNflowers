@@ -2,7 +2,8 @@
 // Author: Moore Macauley, Jackie Ho, Lo Weislak
 // Date: 3/18/25
 
-//TODO: Add max number of flowers to screen
+//TODO: Have bees stop when max number of flowers is reached
+//TODO: Add lose screen if no more flowers are on the screen
 //TODO: Slow bees down when in war or reaching max number of flowers
 //TODO: Lower sound volume
 
@@ -97,8 +98,7 @@ let conflictSketch = function(p) {
   }
 }
 
-//TODO: Work on minigame
-//TODO: Spawn random colored bee at random point on the canvas, move across
+//Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
   let beesClicked = {Red: 1, Green: 1, Blue: 1}; //TEST: SET TO ONE
   let colors = ["Red", "Green", "Blue"];
@@ -130,7 +130,7 @@ let peaceSketch = function(p) {
   p.draw = function() {
     if(minigameStart) {
       p.background("green");
-      p.text("Click an equal amount of different colored bees!", 20, 10);
+      p.text("Click an equal amount of different colored bees to restore peace!", 0, 10);
       p.updateCounter();
 
       for(let bee of minigameBees) {
@@ -171,31 +171,42 @@ let peaceSketch = function(p) {
   p.updateCounter = function() {
     p.text(`Red: ${beesClicked.Red}, Green: ${beesClicked.Green}, Blue: ${beesClicked.Blue}`, 75, 20);
     if (checkWin()) {
-      for(let key in beesClicked) { //Reset score
-        beesClicked[key] = 1; //TEST: SET TO ONE
-      }
-      minigameBees = []; //Reset bees
+      p.minigameReset();
       enablePeace();
     }
+
+    for(let key in beesClicked) {
+      if (beesClicked[key] < 0) {
+        p.minigameFail();
+      }
+    }
+
   }
 
   function checkWin() {
     for(let key in beesClicked) {
-      if(beesClicked[key] > 0) {
+      if (beesClicked[key] > 0) {
         return false;
-      }
-      if(p.checkGameOver(beesClicked[key])) {
-        console.log("GAME OVER"); //TEST
       }
     }
     return true;
   }
 
-  p.checkGameOver = function(numClicked) {
-    if(numClicked < 0) {
-      return true;
+  p.minigameFail = function() {
+    p.text("TRY AGAIN", 200, 150);
+    p.minigameReset();
+    clearInterval(minigameStart);
+    minigameStart = null;
+    setTimeout(() => {
+      minigameStart = setInterval(p.addMinigameBee, 500);
+    }, 5000);
+  }
+
+  p.minigameReset = function() {
+    for(let key in beesClicked) { //Reset score
+      beesClicked[key] = 1; //TEST: SET TO ONE
     }
-    return false;
+    minigameBees = []; //Reset bees
   }
 
   p.hide = function() {
@@ -237,6 +248,10 @@ function enablePeace() {
   garden.volume = 0.5;
   garden.play();
   p5Peace.hide();
+}
+
+function gameOver() {
+
 }
 
 //This class stores infomation about each flower displayed on the screen
