@@ -1,6 +1,10 @@
 // sketch.js - Two modes: war and peace. Bees spawn from hives and either cooperate or fight through colors of flowers.
 // Author: Moore Macauley, Jackie Ho, Lo Weislak
-// Date:
+// Date: 3/18/25
+
+//TODO: Add max number of flowers to screen
+//TODO: Slow bees down when in war or reaching max number of flowers
+//TODO: Lower sound volume
 
 // Globals
 let canvasContainer;
@@ -26,7 +30,7 @@ let cry = new Audio('./sound/cry.mp3');
 let warSounds = [explosion, gun, plane, cry];
 let soundEffectCountdown = 0;
 
-let conflictSketch = function(p){
+let conflictSketch = function(p) {
   p.setup = function() {
     p.colorMode(p.HSB, 1);
     // place our canvas, making it fit our container
@@ -34,10 +38,12 @@ let conflictSketch = function(p){
     let conflictCanvas = p.createCanvas(canvasContainer.width(), canvasContainer.height());
     conflictCanvas.parent("canvas-container");
       
+    /*
     $(window).resize(function() {
       resizeScreen(p);
     });
     resizeScreen(p);
+    */
   
     //Add the three hives
     hives.push(new Hive("red", {x: 70, y: 50}, p));
@@ -91,7 +97,13 @@ let conflictSketch = function(p){
   }
 }
 
+//TODO: Work on minigame
+//TODO: Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
+  let beesClicked = {Red: 0, Green: 0, Blue: 0};
+  let colors = ["Red", "Green", "Blue"];
+  let minigameBees = [];
+
   let container;
   p.setup = function() {
     p.colorMode(p.HSB, 1);
@@ -101,30 +113,65 @@ let peaceSketch = function(p) {
     conflictCanvas.parent("minigame-container");
     container = $("#minigame-container");
       
+    /*
     $(window).resize(function() {
       resizeScreen(p);
     });
     resizeScreen(p);
-    this.testHive = new Hive("blue", {x: p.width/2 - 50, y: p.height/2 - 50}, p);
+    */
     p.hide();
+  }
+
+  p.addMinigameBee = function() {
+    minigameBees.push(new Bee(colors[Math.floor(Math.random()*colors.length)], {x: p.width, y: Math.random() * p.height}, p));
   }
 
   p.draw = function() {
     p.background("green");
-    this.testHive.display();
+    p.text("Click an equal amount of different colored bees!", 20, 10);
+    p.updateCounter();
+
+    for(let bee of minigameBees) {
+      bee.display();
+      p.moveMinigameBee(bee);
+    }
+  }
+
+  p.moveMinigameBee = function(bee) {
+    bee.position.x--;
+    if(bee.position.x < 0) {
+      p.removeMinigameBee(bee);
+    }
+  }
+
+  p.removeMinigameBee = function(bee) {
+    minigameBees.splice(minigameBees.indexOf(bee), 1);
   }
 
   p.mousePressed = function() {
     if(canvasClicked(p)) {
-      enablePeace();
+      p.checkClick();
+      //enablePeace();
     }
+  }
+
+  //Check where on the canvas the mouse was pressed
+  p.checkClick = function() {
+    
+  }
+
+  //Update bee counter
+  p.updateCounter = function() {
+    p.text(`Red: ${beesClicked.Red}, Green: ${beesClicked.Green}, Blue: ${beesClicked.Blue}`, 75, 20);
   }
 
   p.hide = function() {
     container.hide();
+    clearInterval(); //Might need to fix?
   }
   p.show = function() {
     container.show();
+    setInterval(p.addMinigameBee, 1000);
   }
 }
 
@@ -178,7 +225,6 @@ class Flower {
     // Range of xy values should be bewteen -newFlowerSpawnRadius and +newFlowerSpawnRadius of current xy position, and not within newFlowerExclusionRadius of current flower
     // Pick xy values until they are within the range and not within the exclusion radius
 
-    //while(dist < newFlowerExclusionRadius && !(newFlowerX < 0 || newFlowerX > width || newFlowerY < 0 || newFlowerY > height)) {
     while(dist < newFlowerExclusionRadius || !(onCanvas(newFlowerX, newFlowerY, this.p))) {
       newFlowerX = this.position.x + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
       newFlowerY = this.position.y + Math.floor(Math.random() * (newFlowerSpawnRadius * 2) - newFlowerSpawnRadius);
@@ -282,7 +328,6 @@ class Bee extends Hive {
     return possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
   }
 
-  //TODO: Assign weights based on color of flower
   //FIX: Bees sometimes get stuck on flower for one cycle
   search() {
     var target = this.getRandomInRange();
