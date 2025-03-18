@@ -100,7 +100,7 @@ let conflictSketch = function(p) {
 
 //Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
-  let beesClicked = {Red: 1, Green: 1, Blue: 1}; //TEST: SET TO ONE
+  let beesClicked = {Red: 10, Green: 10, Blue: 10}; //TEST: SET TO ONE
   let colors = ["Red", "Green", "Blue"];
   let minigameBees = [];
   let minigameStart;
@@ -210,7 +210,7 @@ let peaceSketch = function(p) {
 
   p.minigameReset = function() {
     for(let key in beesClicked) { //Reset score
-      beesClicked[key] = 1; //TEST: SET TO ONE
+      beesClicked[key] = 10;
     }
     minigameBees = []; //Reset bees
   }
