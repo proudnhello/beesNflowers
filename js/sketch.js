@@ -100,9 +100,10 @@ let conflictSketch = function(p) {
 //TODO: Work on minigame
 //TODO: Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
-  let beesClicked = {Red: 0, Green: 0, Blue: 0};
+  let beesClicked = {Red: 1, Green: 1, Blue: 1}; //TEST: SET TO ONE
   let colors = ["Red", "Green", "Blue"];
   let minigameBees = [];
+  let minigameStart;
 
   let container;
   p.setup = function() {
@@ -127,13 +128,15 @@ let peaceSketch = function(p) {
   }
 
   p.draw = function() {
-    p.background("green");
-    p.text("Click an equal amount of different colored bees!", 20, 10);
-    p.updateCounter();
+    if(minigameStart) {
+      p.background("green");
+      p.text("Click an equal amount of different colored bees!", 20, 10);
+      p.updateCounter();
 
-    for(let bee of minigameBees) {
-      bee.display();
-      p.moveMinigameBee(bee);
+      for(let bee of minigameBees) {
+        bee.display();
+        p.moveMinigameBee(bee);
+      }
     }
   }
 
@@ -146,13 +149,11 @@ let peaceSketch = function(p) {
 
   p.removeMinigameBee = function(bee) {
     minigameBees.splice(minigameBees.indexOf(bee), 1);
-    beesClicked[bee.color]++;
   }
 
   p.mousePressed = function() {
     if(canvasClicked(p)) {
       p.checkClick();
-      //enablePeace();
     }
   }
 
@@ -161,6 +162,7 @@ let peaceSketch = function(p) {
     for(var bee of minigameBees) {
       if(p.dist(p.mouseX, p.mouseY, bee.position.x, bee.position.y) < 15) {
         p.removeMinigameBee(bee);
+        beesClicked[bee.color]--;
       }
     }
   }
@@ -168,15 +170,42 @@ let peaceSketch = function(p) {
   //Update bee counter
   p.updateCounter = function() {
     p.text(`Red: ${beesClicked.Red}, Green: ${beesClicked.Green}, Blue: ${beesClicked.Blue}`, 75, 20);
+    if (checkWin()) {
+      for(let key in beesClicked) { //Reset score
+        beesClicked[key] = 1; //TEST: SET TO ONE
+      }
+      minigameBees = []; //Reset bees
+      enablePeace();
+    }
+  }
+
+  function checkWin() {
+    for(let key in beesClicked) {
+      if(beesClicked[key] > 0) {
+        return false;
+      }
+      if(p.checkGameOver(beesClicked[key])) {
+        console.log("GAME OVER"); //TEST
+      }
+    }
+    return true;
+  }
+
+  p.checkGameOver = function(numClicked) {
+    if(numClicked < 0) {
+      return true;
+    }
+    return false;
   }
 
   p.hide = function() {
     container.hide();
-    clearInterval(); //Might need to fix?
+    clearInterval(minigameStart);
+    minigameStart = null;
   }
   p.show = function() {
     container.show();
-    setInterval(p.addMinigameBee, 1000);
+    minigameStart = setInterval(p.addMinigameBee, 500);
   }
 }
 
