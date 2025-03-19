@@ -117,6 +117,8 @@ let conflictSketch = function(p) {
   }
 }
 
+let peaceFlowers = [];
+let peaceFlowersLifespan = 1000;
 //Spawn random colored bee at random point on the canvas, move across
 let peaceSketch = function(p) {
   let beesClicked = {Red: 10, Green: 10, Blue: 10};
@@ -127,6 +129,7 @@ let peaceSketch = function(p) {
   let container;
   p.setup = function() {
     p.colorMode(p.HSB, 1);
+    p.noStroke();
     // place our canvas, making it fit our container
     canvasContainer = $("#minigame-container");
     let conflictCanvas = p.createCanvas(canvasContainer.width(), canvasContainer.height());
@@ -147,14 +150,21 @@ let peaceSketch = function(p) {
   }
 
   p.draw = function() {
-    if(minigameStart) {      p.background("green");
-      p.text("Click an equal amount of different colored\n            bees to restore peace!", 40, 10);
+    if(minigameStart) {  
+      p.background("green");
+      for(let flower of peaceFlowers) {
+        flower.sprite();
+      }
+    
+      p.fill("black");
+      p.text("Click an equal amount of different colored\n            bees to restore peace!\n Don't be too uneven, or they keep fighting.", 40, 10);
       p.updateCounter();
 
       for(let bee of minigameBees) {
         bee.display();
         p.moveMinigameBee(bee);
       }
+
     }
   }
 
@@ -181,6 +191,15 @@ let peaceSketch = function(p) {
       if(p.dist(p.mouseX, p.mouseY, bee.position.x, bee.position.y) < 15) {
         p.removeMinigameBee(bee);
         beesClicked[bee.color]--;
+        // Creates flowers in a radius around the bee of a random color when bees are clicked
+        for (let i = 0; i < 3; i++) {
+          let hue = Math.random();
+          let color = p.color(hue, 1, 1);
+          p.push();
+          p.scale(0.5);
+          peaceFlowers.push(new Flower(bee.position.x + Math.random() * 50 - 25, bee.position.y + Math.random() * 50 - 25, "yellow", color, p, peaceFlowersLifespan));
+          p.pop();
+        }
       }
     }
   }
@@ -199,10 +218,18 @@ let peaceSketch = function(p) {
   }
 
   function checkLose() {
-    for(let key in beesClicked) {
-      if (beesClicked[key] < 0) {
-        return true;
-      }
+    let red = beesClicked["Red"];
+    let green = beesClicked["Green"];
+    let blue = beesClicked["Blue"];
+
+    // If any of the colors are negative, the player has lost
+    if (red < 0 || green < 0 || blue < 0) {
+      return true
+    }
+
+    // If the difference between any two colors is greater than 3, the player has also lost
+    if(Math.abs(red - green) > 3 || Math.abs(red - blue) > 3 || Math.abs(green - blue) > 3) {
+      return true;
     }
     return false;
   }
@@ -231,6 +258,7 @@ let peaceSketch = function(p) {
       beesClicked[key] = 10;
     }
     minigameBees = []; //Reset bees
+    peaceFlowers = []; //Reset flowers
   }
 
   p.hide = function() {
@@ -278,7 +306,7 @@ function enablePeace() {
 //This class stores infomation about each flower displayed on the screen
 //TODO: Don't spawn flowers directly on top of hives or each other
 class Flower {
-  constructor(x, y, stigmaColor, petalColor, p) {
+  constructor(x, y, stigmaColor, petalColor, p, countdown = -1) {
     this.position = {x, y};
     this.stigmaColor = stigmaColor;
     this.petalColor = petalColor;
@@ -286,6 +314,7 @@ class Flower {
     this.destroyed = false;
     this.targeted = false;
     this.p = p;
+    this.countdown = countdown;
   }
 
   duplicate() {
@@ -316,11 +345,20 @@ class Flower {
     this.p.ellipse(this.position.x-17,this.position.y-20,20,20);
     this.p.ellipse(this.position.x,this.position.y-15,20,20);
     this.p.fill(this.stigmaColor);
-    this.p.ellipse(this.position.x-12,this.position.y-7,10,10) ;
+    this.p.ellipse(this.position.x-12,this.position.y-7,10,10);
+
+    if(this.countdown != -1){
+      this.countdown -= this.p.deltaTime;
+      if(this.countdown <= 0) {
+        console.log("Flower destroyed");
+        this.destroyed = true;
+        this.destroy(peaceFlowers);
+      }
+    }
   }
 
-  destroy(){
-    flowers.splice(flowers.indexOf(this), 1);
+  destroy(list){
+    list.splice(list.indexOf(this), 1);
   }
 }
 
@@ -455,7 +493,7 @@ class Bee extends Hive {
     // If it's a different color and has been visited, destroy it
     if (this.target.petalColor != this.color && this.target.visited == true) {
       this.target.destroyed = true;              
-      this.target.destroy();
+      this.target.destroy(flowers);
     } else {
       // Otherwise, mark it as visited and duplicate it if it has been visited
       if(this.target.visited == true){
