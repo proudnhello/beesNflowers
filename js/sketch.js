@@ -107,10 +107,11 @@ let conflictSketch = function(p) {
   p.gameOver = function() {
     p.clear();
     p.background("maroon");
-    p.stroke("black");
     p.textSize(32);
+    p.noStroke();
+    p.fill("black");
     p.text("GAME OVER", p.width - 400, p.height/2 - 100);
-    p.text("Click anywhere to restart", p.width - 470, p.height/2 + 100);
+    p.text("Click anywhere to plant a new flower", p.width - 555, p.height/2 + 100);
   }
 }
 
