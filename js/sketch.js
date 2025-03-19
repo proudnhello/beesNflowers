@@ -25,9 +25,13 @@ let buzz = new Audio('./sound/bee.mp3');
 let garden = new Audio('./sound/garden.mp3');
 
 let explosion = new Audio('./sound/explosion.mp3');
+explosion.volume = 0.2;
 let gun = new Audio('./sound/gun.mp3');
+gun.volume = 0.2;
 let plane = new Audio('./sound/plane.mp3');
+plane.volume = 0.2;
 let cry = new Audio('./sound/cry.mp3');
+cry.volume = 0.2;
 
 let warSounds = [explosion, gun, plane, cry];
 let soundEffectCountdown = 0;
@@ -286,7 +290,7 @@ function enableWar() {
   buttonContainer.style.display = "none";
   garden.pause();
   siren.currentTime = 0;
-  siren.volume = 0.5;
+  siren.volume = 0.2;
   siren.play();
   beeSpeed = MAX_BEE_SPEED; //Reset speed
   p5Peace.show();
@@ -298,13 +302,12 @@ function enablePeace() {
   buttonContainer.textAlign = "center";
   siren.pause();
   garden.currentTime = 0;
-  garden.volume = 0.5;
+  garden.volume = 0.2;
   garden.play();
   p5Peace.hide();
 }
 
 //This class stores infomation about each flower displayed on the screen
-//TODO: Don't spawn flowers directly on top of hives or each other
 class Flower {
   constructor(x, y, stigmaColor, petalColor, p, countdown = -1) {
     this.position = {x, y};
@@ -446,7 +449,6 @@ class Bee extends Hive {
     return possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
   }
 
-  //FIX: Bees sometimes get stuck on flower for one cycle
   search() {
     var target = this.getRandomInRange();
     if(target == null) {
@@ -470,8 +472,9 @@ class Bee extends Hive {
         if(soundEffectCountdown >= 1){
           soundEffectCountdown = 0;
           if(!war){
+            buzz.volume = 0.2;
             buzz.play();
-          }else{
+          } else {
             warSounds[Math.floor(Math.random() * warSounds.length)].play();
           }
         }
