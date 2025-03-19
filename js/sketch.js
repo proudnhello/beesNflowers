@@ -3,7 +3,6 @@
 // Date: 3/18/25
 
 //TODO: Have bees stop when max number of flowers is reached
-//TODO: Add lose screen if no more flowers are on the screen
 //TODO: Slow bees down when in war or reaching max number of flowers
 //TODO: Lower sound volume
 
@@ -16,7 +15,9 @@ let hives = [];
 let war = false;
 let newFlowerSpawnRadius = 75;
 let newFlowerExclusionRadius = 25;
-let BEE_SPEED = 0.005;
+const MAX_BEE_SPEED = 0.005
+const MAX_FLOWERS = 200;
+let beeSpeed = MAX_BEE_SPEED;
 let nuclearButton = document.getElementById("nuclearButton");
 let buttonContainer = document.getElementById("buttonContainer"); 
 let siren = new Audio('./sound/siren.mp3');
@@ -60,7 +61,7 @@ let conflictSketch = function(p) {
   
     //Spawn 10 flowers at random locations to start
     for(let i = 0; i < 30; i++) {
-      //flowers.push(new Flower(p.random() * p.width, p.random() * p.height, "yellow", "grey", p));
+      flowers.push(new Flower(p.random() * p.width, p.random() * p.height, "yellow", "grey", p));
     }
   }
   
@@ -79,10 +80,12 @@ let conflictSketch = function(p) {
       bee.display();
       bee.move();
     }
-    soundEffectCountdown += BEE_SPEED;
+    soundEffectCountdown += beeSpeed;
 
     if (flowers.length == 0) {
       p.gameOver();
+    } else if (flowers.length >= MAX_FLOWERS && war == false) {
+      beeSpeed = 0;
     }
   }
 
@@ -255,6 +258,7 @@ function enableWar() {
   siren.currentTime = 0;
   siren.volume = 0.5;
   siren.play();
+  beeSpeed = MAX_BEE_SPEED; //Reset speed
   p5Peace.show();
 }
 
@@ -408,7 +412,7 @@ class Bee extends Hive {
   move() {
     if(this.target && !this.target.destroyed) {
       // If we have a target, move towards it
-      this.distTraveled += BEE_SPEED;
+      this.distTraveled += beeSpeed;
       this.position.x = this.p.lerp(this.oldTargetPosition.x, this.target.position.x, this.distTraveled);
       this.position.y = this.p.lerp(this.oldTargetPosition.y, this.target.position.y, this.distTraveled);
       if(this.targetReached()) {
