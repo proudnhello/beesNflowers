@@ -33,6 +33,7 @@ let warSounds = [explosion, gun, plane, cry];
 let soundEffectCountdown = 0;
 
 let conflictSketch = function(p) {
+
   p.setup = function() {
     p.colorMode(p.HSB, 1);
     // place our canvas, making it fit our container
@@ -111,6 +112,7 @@ let conflictSketch = function(p) {
     p.noStroke();
     p.fill("black");
     p.text("GAME OVER", p.width - 400, p.height/2 - 100);
+    p.textSize(24);
     p.text("Click anywhere to plant a new flower", p.width - 555, p.height/2 + 100);
   }
 }
@@ -145,9 +147,8 @@ let peaceSketch = function(p) {
   }
 
   p.draw = function() {
-    if(minigameStart) {
-      p.background("green");
-      p.text("Click an equal amount of different colored bees to restore peace!", 0, 10);
+    if(minigameStart) {      p.background("green");
+      p.text("Click an equal amount of different colored\n            bees to restore peace!", 40, 10);
       p.updateCounter();
 
       for(let bee of minigameBees) {
@@ -186,7 +187,7 @@ let peaceSketch = function(p) {
 
   //Update bee counter
   p.updateCounter = function() {
-    p.text(`Red: ${beesClicked.Red}, Green: ${beesClicked.Green}, Blue: ${beesClicked.Blue}`, 75, 20);
+    p.text(`Red: ${beesClicked.Red}, Green: ${beesClicked.Green}, Blue: ${beesClicked.Blue}`, 75, 290);
     if (checkWin()) {
       p.minigameReset();
       enablePeace();
@@ -354,9 +355,19 @@ class Bee extends Hive {
   display() {
     this.p.push();
     this.p.fill("black");
-    this.p.ellipse(this.position.x, this.position.y, 11, 11);
+    this.p.ellipse(this.position.x, this.position.y, 21, 16);
+    this.p.ellipse(this.position.x-10, this.position.y, 11, 11);
+    this.p.fill("gray");
+    this.p.ellipse(this.position.x + 3, this.position.y-7, 7, 10);
+    this.p.ellipse(this.position.x - 3, this.position.y-7, 7, 10);
+    this.p.ellipse(this.position.x + 3, this.position.y+7, 7, 10);
+    this.p.ellipse(this.position.x - 3, this.position.y+7, 7, 10);
     this.p.fill(this.color);
-    this.p.ellipse(this.position.x, this.position.y, 10, 10);
+    this.p.ellipse(this.position.x, this.position.y, 20, 15);
+    this.p.ellipse(this.position.x-10, this.position.y, 10, 10);
+    this.p.fill("black");
+    this.p.ellipse(this.position.x + 6, this.position.y, 2, 11);
+    this.p.ellipse(this.position.x + 1, this.position.y, 2, 13);
     this.p.pop();
   }
 
